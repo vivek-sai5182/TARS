@@ -1,6 +1,6 @@
 from enum import Enum
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List,Optional
 
 class ActionType(str, Enum):
     """
@@ -17,6 +17,10 @@ class ActionType(str, Enum):
     CLICK = "click"                        # Mouse click at coordinates/element
     PRESSKEY = "press_key"                 # Press key/combo (Enter, Ctrl+C, etc.)
     WAIT = "wait"                          # Pause execution (seconds)
+    BROWSER_CLICK = "browser_click"
+    BROWSER_TYPE = "browser_type"
+    BROWSER_PRESS = "browser_press"
+    LIST_ITEM = "list_item"
 
     # FUTURE-PROOFING (DO NOT USE IN GEMINI PROMPTS FOR MVP):
     # These are RESERVED for Phase 2+ but SAFE to keep in enum now
@@ -33,6 +37,10 @@ class Command(BaseModel):
     target: str = Field(
         ...,
         description="Always a string. Examples: 'Brave', 'youtube.com', 'hello world', '5'"
+    )
+    value: Optional[str] = Field(
+        None,
+        description="Optional value for browser actions (e.g., text to type). Desktop actions ignore this field."
     )
 
 class CommandPlan(BaseModel):

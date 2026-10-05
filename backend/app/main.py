@@ -9,6 +9,11 @@ from .session.tracker import session_state
 from dotenv import load_dotenv
 
 load_dotenv()
+import sys
+import asyncio
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 app = FastAPI(title="TARS Backend")
 app.add_middleware(
     CORSMiddleware,

@@ -238,6 +238,7 @@ async def open(target: str) -> Dict[str, Any]:
     2. Start Menu shortcuts (.lnk files)
     3. AppX packages (Microsoft Store apps)
     4. Executable search (PATH and common directories)
+    5. Special handling for browsers (delegate to browser.py for automation)
     """
     try:
         target_normalized = target.lower().strip()
@@ -247,6 +248,48 @@ async def open(target: str) -> Dict[str, Any]:
                 "message": "Empty application target",
                 "failed_command": {"action": "open_application", "target": target}
             }
+
+        # Special handling for browsers - delegate to browser.py for automation
+        if target_normalized in ["brave", "chrome"]:
+            try:
+                # Import the browser module functions
+                from . import browser
+
+                # Ensure browser is ready for automation (launches if needed)
+                browser_instance, context, page = await browser._ensure_browser_ready_for_automation(target_normalized)
+
+                if browser_instance and context and page:
+                    # Bring browser to foreground
+                    await browser._bring_browser_to_foreground()
+
+                    return {
+                        "status": "success",
+                        "message": f"Launched {target_normalized} and enabled remote debugging on port 9222",
+                        "data": {
+                            "browser": target_normalized,
+                            "launch_method": "delegated_to_browser_tool"
+                        }
+                    }
+                else:
+                    return {
+                        "status": "error",
+                        "message": f"Failed to launch {target_normalized} for automation. "
+                                   f"Please check that the browser executable exists at the configured path "
+                                   f"and that you have permission to launch it.",
+                        "failed_command": {
+                            "action": "open_application",
+                            "target": target
+                        }
+                    }
+            except Exception as e:
+                return {
+                    "status": "error",
+                    "message": f"Error launching {target_normalized}: {str(e)}",
+                    "failed_command": {
+                        "action": "open_application",
+                        "target": target
+                    }
+                }
 
         launch_method = None
         launch_info = None

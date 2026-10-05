@@ -35,9 +35,11 @@ def validate_gemini_output(raw_json: dict) -> CommandPlan:
               error_msgs.append(f"Field '{loc}': {msg}")
 
           raise InvalidCommandPlanError(
-              f"Gemini output invalid. Errors: {'; '.join(error_msgs)}. "
-              f"Expected format: {{'commands': [{{'action': '<{','.join([a.value for a in ActionType])}>', 'target': '<string>'}}]}}"
-          )
+            f"Gemini output invalid. Errors: {'; '.join(error_msgs)}. "
+            f"Expected format: {{'commands': [{{'action': '<{','.join([a.value for a in ActionType])}>', "
+            f"'target': '<string>', 'value': '<string|optional>'}}]}}"
+            f"Note: 'value' is optional and only used for browser actions."
+        )
     except Exception as e:
         # Catch any other unexpected errors (e.g., not a dict)
         raise InvalidCommandPlanError(
